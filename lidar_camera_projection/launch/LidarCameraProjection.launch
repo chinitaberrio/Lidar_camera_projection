@@ -1,0 +1,24 @@
+<launch>
+
+ <node pkg="lidar_camera_projection" type="lidar_camera_projection_node" name="lidar_camera_projection_node" output="screen">
+  <remap from="~static_transforms" to="/tf_static" />
+  <remap from="~image" to="/sekonix_camera/port_a_cam_1/image_color" />
+  <remap from="~camera_info" to="/sekonix_camera/port_a_cam_1/camera_info" />
+  <remap from="~raw_lidar" to="/velodyne/front/points" />
+
+  <param name="camera_frame" value="A0" />
+  <param name="path" value="/home/acfr/documents/test" />
+  <param name="lidar_frame" value="os_sensor" />
+  <param name="polygon_frame" value="base_link" />
+
+  <param name="publish_rgb_cloud" type="bool" value="true" />
+  <param name="publish_uv_cloud" type="bool" value="true" />
+  <param name="publish_full_cloud" type="bool" value="true" />
+
+  <param name="save_range_image" type="bool" value="true" />
+  <param name="save_intensity_image" type="bool" value="false" />
+  <param name="save_ring_image" type="bool" value="false" />
+
+ </node>
+
+</launch>
