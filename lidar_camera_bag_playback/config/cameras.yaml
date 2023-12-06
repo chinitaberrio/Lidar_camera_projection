@@ -1,4 +1,4 @@
-# list of the camera topic prefixes to load for the algorithm. The topic prefixes are required (i.e. /sekonix_camera/A0 for the front centre camera)
+# list of the camera topic prefixes to load for the algorithm. The topic prefixes are required (i.e. /sekonix_camera/port_a_cam_0 for the front centre camera)
 # note: do not use the image_color topic, only the prefix /sekonix_camera/XX is required
 camera_topics:
   - /sekonix_camera/port_a_cam_0

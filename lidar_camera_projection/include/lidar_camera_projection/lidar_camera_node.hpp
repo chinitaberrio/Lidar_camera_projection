@@ -216,6 +216,7 @@ namespace lidar_camera_projection {
 
     int height, width;
     bool valid_camera_info, valid_transform;
+    std::string camera_model;
 
     /* TO REMOVE */
     geometry_msgs::TransformStamped transform, polygon_transform, lidar_baselink_transform;

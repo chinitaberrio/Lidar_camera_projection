@@ -15,10 +15,6 @@ namespace lidar_camera_projection {
       MIN_Z_VALUE(0.3)
  {
 
-/*
-    camera_matrix = MatrixXf(3,3); // 3x3 camera matrix
-    distortion_coefficients = MatrixXf(1,4);  // 1x4 distortion coefficients
-*/
     data_products = std::make_shared<DataProducts>();
 
     nh = ros::NodeHandle("~");
@@ -100,30 +96,20 @@ namespace lidar_camera_projection {
       cam_frame = "port_a_camera_1";
     else if (camera_frame == "/sekonix_camera/port_b_cam_0/image_color")
       cam_frame = "port_b_camera_0";
-    else if (camera_frame == "/sekonix_camera/port_a_cam_1/image_color")
+    else if (camera_frame == "/sekonix_camera/port_b_cam_1/image_color")
       cam_frame = "port_b_camera_1";
-    else if (camera_frame == "//sekonix_camera/port_c_cam_0/image_color")
+    else if (camera_frame == "/sekonix_camera/port_c_cam_0/image_color")
       cam_frame = "port_c_camera_0";
-    else if (camera_frame == "/sekonix_camera/port_a_cam_1/image_color")
+    else if (camera_frame == "/sekonix_camera/port_c_cam_1/image_color")
       cam_frame = "port_c_camera_1";
     else if (camera_frame == "/sekonix_camera/port_d_cam_0/image_color")
       cam_frame = "port_d_camera_0";
-    else if (camera_frame == "/sekonix_camera/port_a_cam_1/image_color")
+    else if (camera_frame == "/sekonix_camera/port_d_cam_1/image_color")
       cam_frame = "port_d_camera_1";
-
-
   }
 
 
   void Projector::callback_camerainfo(const sensor_msgs::CameraInfo::ConstPtr &msg) {
-
-/*
-    camera_matrix << msg->K[0], 0,         msg->K[2],
-                     0.,        msg->K[4], msg->K[5],
-                     0.,        0.,        1.;
-
-    distortion_coefficients << msg->D[0], msg->D[1], msg->D[2], msg->D[3];
-*/
 
     cameramat.at<double>(0, 0) = msg->K[0];
     cameramat.at<double>(0, 2) = msg->K[2];
@@ -139,6 +125,7 @@ namespace lidar_camera_projection {
 
     height = msg->height;
     width = msg->width;
+    camera_model = msg->distortion_model;
 
     valid_camera_info = true;
   }
@@ -154,21 +141,29 @@ namespace lidar_camera_projection {
 
     distance = pow(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z, 0.5);
     cv::Point2d planepointsC;
-//    int range = std::min(float(round((dis / 50) * 149)), (float) 149.0);
-//    int intensity = std::min(float(round((it->intensity / 100)) * 149), (float) 149.0);
-//    int ring = std::min(float(round((it->ring % 16) * 9)), (float) 149.0);
 
     // applying the distortion
     double r2 = tmpxC * tmpxC + tmpyC * tmpyC;
-    double r1 = pow(r2, 0.5);
-    double a0 = std::atan(r1);
-    double a1;
 
-    a1 = a0 * (1 + distcoeff.at<double>(0) * pow(a0, 2) + distcoeff.at<double>(1) * pow(a0, 4) +
-               distcoeff.at<double>(2) * pow(a0, 6) + distcoeff.at<double>(3) * pow(a0, 8));
-
-    u_float = (a1 / r1) * tmpxC;
-    v_float = (a1 / r1) * tmpyC;
+    if (camera_model == "equidistant")
+      {
+        double r1 = pow(r2, 0.5);
+        double a0 = std::atan(r1);
+        double a1;
+        a1 = a0 * (1 + distcoeff.at<double>(0) * pow(a0, 2) + distcoeff.at<double>(1) * pow(a0, 4) +
+                    distcoeff.at<double>(2) * pow(a0, 6) + distcoeff.at<double>(3) * pow(a0, 8));
+        u_float = (a1 / r1) * tmpxC;
+        u_float = (a1 / r1) * tmpyC;
+      }
+      else
+      {
+        double tmpdist = 1 + distcoeff.at<double>(0) * r2 + distcoeff.at<double>(1) * r2 * r2 +
+                          distcoeff.at<double>(4) * r2 * r2 * r2;
+        u_float = tmpxC * tmpdist + 2 * distcoeff.at<double>(2) * tmpxC * tmpyC +
+                          distcoeff.at<double>(3) * (r2 + 2 * tmpxC * tmpxC);
+        v_float = tmpyC * tmpdist + distcoeff.at<double>(2) * (r2 + 2 * tmpyC * tmpyC) +
+                          2 * distcoeff.at<double>(3) * tmpxC * tmpyC;
+      }
 
     u_float = cameramat.at<double>(0, 0) * u_float + cameramat.at<double>(0, 2);
     v_float = cameramat.at<double>(1, 1) * v_float + cameramat.at<double>(1, 2);
@@ -414,50 +409,6 @@ namespace lidar_camera_projection {
         cv_image.toImageMsg(*(data_products->ring_image));
       }
 
-
-
-
-      /*
-
-std::string s_v, s_i;
-std::stringstream out;
-
-out << msg->header.seq;
-s_v = out.str();
-out << img->header.seq;
-s_i = out.str();
-
-if (data_products->flag_range_image) {
-  if (!path.empty() && !output_range_video.isOpened()) {
-    output_range_video = cv::VideoWriter(path + "/range_" + VideoFileName(), CV_FOURCC('M', 'J', 'P', 'G'), 10,
-                                         cv::Size(width, height));
-  }
-  if (output_range_video.isOpened()) {
-    output_range_video << data_products->image_range;
-  }
-}
-if (data_products->flag_intensity_image) {
-  if (!path.empty() && !output_intensity_video.isOpened()) {
-    output_intensity_video = cv::VideoWriter(path + "/intensity_" + VideoFileName(),
-                                             CV_FOURCC('M', 'J', 'P', 'G'), 10,
-                                             cv::Size(width, height));
-  }
-  if (output_intensity_video.isOpened()) {
-    output_intensity_video << data_products->image_intensity;
-  }
-}
-if (data_products->flag_ring_image) {
-  if (!path.empty() && !output_ring_video.isOpened()) {
-    output_ring_video = cv::VideoWriter(path + "/ring_" + VideoFileName(), CV_FOURCC('M', 'J', 'P', 'G'), 10,
-                                        cv::Size(width, height));
-  }
-  if (output_ring_video.isOpened()) {
-    output_ring_video << data_products->image_ring;
-  }
-}
-*/
-
-
       // if required. create the resulting PC2 messages from the point clouds
       if (data_products->rgb_pointcloud) {
 
@@ -564,7 +515,6 @@ if (data_products->flag_ring_image) {
     untransformed_point.vector.y = -.7*shape_size;
     polygon.push_back(untransformed_point);
 
-//    double x_offset = 1.2;
     double x_offset = 0;
 
     for (auto &arrow_point: polygon) {
