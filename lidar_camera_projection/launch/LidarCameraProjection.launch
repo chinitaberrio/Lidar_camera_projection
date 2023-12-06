@@ -4,7 +4,7 @@
   <remap from="~static_transforms" to="/tf_static" />
   <remap from="~image" to="/sekonix_camera/port_a_cam_1/image_color" />
   <remap from="~camera_info" to="/sekonix_camera/port_a_cam_1/camera_info" />
-  <remap from="~raw_lidar" to="/velodyne/front/points" />
+  <remap from="~raw_lidar" to="/ouster/points" />
 
   <param name="camera_frame" value="/sekonix_camera/port_a_cam_0/image_color" />
   <param name="path" value="/home/acfr/documents/test" />

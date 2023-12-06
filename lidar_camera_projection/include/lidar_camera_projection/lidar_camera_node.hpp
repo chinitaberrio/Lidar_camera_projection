@@ -54,11 +54,6 @@
 
 #include <Eigen/Dense>
 
-/* 
-using Eigen::MatrixXf;
-
-typedef Eigen::Array<bool,Eigen::Dynamic,1> ArrayBoolean;
-*/
 
 
 namespace lidar_camera_projection {
@@ -129,7 +124,6 @@ namespace lidar_camera_projection {
     bool draw_polygon_direct_to_screen(const pcl::PointCloud<pcl::PointXYZIR>::Ptr &polygon, cv::Mat &img, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha);
 
 
-
     bool draw_pose_arrow(std::string frame_id,
                          const std::shared_ptr <tf2::BufferCore> &tf_buffer,
                           ros::Time &message_time,
@@ -187,18 +181,6 @@ namespace lidar_camera_projection {
 
     bool CartesianToImage(geometry_msgs::Vector3 &vector, int &u, int &v, float &distance);
 
-/*
-    bool draw_dots_new(const sensor_msgs::PointCloud2ConstPtr &msg,
-                      const std::shared_ptr <tf2::BufferCore> &tf_buffer,
-                      cv::Mat &img,
-                      uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, int thickness);
-
-
-    ArrayBoolean NewCartesianToImage(MatrixXf &world_coordinates, MatrixXf &image_coordinates, MatrixXf &camera_matrix, MatrixXf &distortion_coefficients);
-*/
-
-
-    //bool rgb, uv, full, save_range, save_intensity, save_ring;
     bool full;
 
     std::string camera_frame, lidar_frame, cam_frame, polygon_frame;
@@ -207,12 +189,6 @@ namespace lidar_camera_projection {
 
     cv::Mat cameramat;
     cv::Mat distcoeff;
-
-/*
-    MatrixXf camera_matrix; // 3x3 camera matrix
-    MatrixXf distortion_coefficients;  // 1x4 distortion coefficients
-*/
-
 
     int height, width;
     bool valid_camera_info, valid_transform;

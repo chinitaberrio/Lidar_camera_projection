@@ -134,11 +134,10 @@ public:
             this->bag_writer.WriteMessage<sensor_msgs::PointCloud2::Ptr>(new_data_bag, colour_lidar_topic,
                                                                          message_time,
                                                                          projector->second->data_products->rgb_pointcloud_msg);
-
-            this->bag_writer.WriteMessage<sensor_msgs::PointCloud2::Ptr>(new_data_bag, uv_lidar_topic,
-                                                                         message_time,
-                                                                         projector->second->data_products->uv_pointcloud_msg);
-
+            
+           // this->bag_writer.WriteMessage<sensor_msgs::PointCloud2::Ptr>(new_data_bag, uv_lidar_topic,
+           //                                                              message_time,
+           //                                                              projector->second->data_products->uv_pointcloud_msg);
 
             try {
               cv_ptr = cv_bridge::toCvCopy(projected_data->range_image, sensor_msgs::image_encodings::BGR8);

@@ -177,12 +177,6 @@ namespace lidar_camera_projection {
     return false;
   }
 
-/*
-  std::shared_ptr<DataProducts>
-  Projector::pointcloud_camera(const pcl::PointCloud<pcl::PointXYZIR>::Ptr &msg,
-                                const sensor_msgs::ImageConstPtr &img) {
-
-*/
   std::shared_ptr<DataProducts>
   Projector::callback_lidar_camera(const sensor_msgs::PointCloud2ConstPtr &msg,
                                    const sensor_msgs::ImageConstPtr &img) {
@@ -474,9 +468,6 @@ namespace lidar_camera_projection {
     geometry_msgs::Quaternion q = pose.orientation;
     
     tf::Quaternion tfq;
-    
-    //// removed because it was causing warnings for un-normalised conversions 
-    //tf::quaternionMsgToTF(q, tfq);
 
     tfq.setW(q.w); tfq.setX(q.x); tfq.setY(q.y); tfq.setZ(q.z);
     tfq.normalize();
@@ -657,61 +648,6 @@ namespace lidar_camera_projection {
     return true;
   }
 
-/*
-
-  bool
-  Projector::draw_dots_new(const sensor_msgs::PointCloud2ConstPtr &msg,
-                          const std::shared_ptr <tf2::BufferCore> &tf_buffer,
-                        cv::Mat &img,
-                        uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha, int thickness) {
-
-    geometry_msgs::TransformStamped image_transform;
-    
-    try {
-      // attempt lookup of transform
-      image_transform = tf_buffer->lookupTransform(cam_frame, "base_link", msg->header.stamp);
-
-      sensor_msgs::PointCloud2Ptr pc_camera_frame(new sensor_msgs::PointCloud2);
-      pcl::PointCloud<pcl::PointXYZIR>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZIR>());
-      
-      // convert to pc message and do the conversion
-      tf2::doTransform(*msg, *pc_camera_frame, image_transform);
-      pcl::fromROSMsg(*pc_camera_frame, *cloud);
-
-
-
-      //ArrayBoolean NewCartesianToImage(MatrixXf &world_coordinates, MatrixXf &image_coordinates, MatrixXf &camera_matrix, MatrixXf &distortion_coefficients);
-
-      MatrixXf image_coordinates(cloud->size(), 2);
-      MatrixXf world_coordinates = cloud->getMatrixXfMap();
-
-      auto valid_points = NewCartesianToImage(world_coordinates, image_coordinates, camera_matrix, distortion_coefficients);
-
-      int intensity = 0;
-
-      for (int i=0; i < world_coordinates.size(); i++) {
-        if (valid_points(i) == true) {
-          // third field represents intensity
-          intensity = std::min(float(round((world_coordinates(i,3) / 100)) * 149), (float) 149.0);
-
-          cv::circle(img, cv::Point(image_coordinates(i,0), image_coordinates(i,1)), thickness,
-                     CV_RGB(255 * colmap[intensity][0], 255 * colmap[intensity][1], 255 * colmap[intensity][2]), -1);
-        }
-      }
-
-
-    }
-    catch (tf2::TransformException &ex) {
-      ROS_INFO_STREAM_THROTTLE(1., "marker transform "<<  cam_frame << " -> " << msg->header.frame_id << " NOT FOUND");
-      return false;
-    }
-
-
-    return true;
-  }
-
-
-*/
 
   bool
   Projector::draw_polygon(std::string frame_id,
@@ -905,52 +841,13 @@ namespace lidar_camera_projection {
       }
     }
 
-/*
-      for (auto &point: polygon) {
-
-        geometry_msgs::Vector3Stamped point_transformed;
-//        point.vector.x = std::get<0>(polygon_point);
-//        point.vector.y = std::get<1>(polygon_point);
-//        point.vector.z = std::get<2>(polygon_point);
-        //tf2::doTransform(point, point_transformed, polygon_transform);
-        tf2::doTransform(point, point_transformed, transform);
-
-        int u = 0,v = 0;
-        float distance = 0.;
-
-        geometry_msgs::Vector3 vector(point_transformed.vector);
-        //vector.x = it->x; vector.y = it->y; vector.z = it->z;
-        // if the transform is successful and the point is on the image
-        if (CartesianToImage(vector, u, v, distance) && v >= 0 && v < height && u >= 0 && u < width ) {
-std::cout << "test: " << vector.x << ", " << vector.y << ", " << vector.z << std::endl;
-          std::cout << ": " << ", " << u << ", " << v << std::endl;
-
-          cv_polygon_points.push_back(cv::Point(v, u));
-        }
-      }
-*/
-/*      for (auto &point: cv_polygon_points) {
-        cv::circle(img,
-                   cv::Point(point.x, point.y), 1,
-                   cv::Scalar(255, 10, 255));
-
-      }
-*/
-
       if (cv_polygon_points.size() > 0) {
         const cv::Point* cv_polygon[1] = { &cv_polygon_points[0] };
         int number_of_points[] = { (int)cv_polygon_points.size() };
 
-//        std::vector<cv::Point> point_v;
-//        for (int i = 0; i < (int)cv_polygon_points.size(); i++){
- //         point_v.push_back(cv_polygon)
- //       }
 
         if (thickness < 0) 
           cv::fillPoly(img, cv_polygon, number_of_points, 1.5, CV_RGB(0.7*(float)red, 0.7*(float)green, 0.7*(float)blue), cv::LINE_8);
-
-        //const cv::Point* ppt[1] = { cv_polygon[0] };
-        //int npt[] = { 20 };
 
         if (thickness < 0)
           cv::polylines(img, cv_polygon_points, true, cv::Scalar(red,green,blue),1,150,0);
@@ -964,10 +861,7 @@ std::cout << "test: " << vector.x << ", " << vector.y << ", " << vector.z << std
 
           cv::polylines(img, cv_polygon_points, false, cv::Scalar(red,green,blue),thickness,cv::LINE_AA);
         }
-        
-        //cv::polylines(img, ppt, number_of_points, false, CV_RGB(red, green, blue), 8);
 
-////        cv::drawLine(img, cv_polygon, number_of_points, 1, CV_RGB(red, green, blue), cv::LINE_8);
       }
 
     return true;
@@ -1050,8 +944,6 @@ Projector::draw_transformed_polyline(const pcl::PointCloud<pcl::PointXYZIR>::Ptr
     distance_prev = distance_next;
   }
   if (cv_polygon_points.size() > 0) {
-    //cv::circle(img, cv_polygon_points.front(), 4, cv::Scalar(0,0,255),2,cv::LINE_AA);
-    //cv::circle(img, cv_polygon_points.back(), 9, cv::Scalar(0,255,0),2,cv::LINE_AA);
 
     cv::polylines(img, cv_polygon_points, false, cv::Scalar(red,green,blue),thickness,cv::LINE_AA);
   }
@@ -1109,44 +1001,6 @@ Projector::draw_transformed_polyline(const pcl::PointCloud<pcl::PointXYZIR>::Ptr
 
     }
   }
-
-
-/*/
-ArrayBoolean Projector::NewCartesianToImage(MatrixXf &world_coordinates, MatrixXf &image_coordinates, MatrixXf &camera_matrix, MatrixXf &distortion_coefficients)  {
-
-    auto valid_z_pixels = world_coordinates(Eigen::placeholders::all, 2).array() >= MIN_Z_VALUE;
-    
-    auto div_z = world_coordinates.rowwise().hnormalized();
-
-    // applying the distortion
-    auto r1 = div_z.array().square().rowwise().sum().cwiseSqrt();
-    
-    auto a0 = r1.array().atan();
-
-    auto a1 = a0 * (1 + distortion_coefficients(0,0) * a0.square() + distortion_coefficients(0,1) * a0.square().square() +
-               distortion_coefficients(0,2) * a0.pow(6) + distortion_coefficients(0,3) * a0.square().square().square());
-
-    auto a1_r1 = (a1 / r1);
-
-    MatrixXf transformed_points = div_z.array().colwise() * a1_r1.array();
-
-    MatrixXf cam(2,2);
-    cam << camera_matrix(0, 0), 0, 0, camera_matrix(1, 1);
-
-    MatrixXf cam_offset(1,2);
-    cam_offset << camera_matrix(0, 2), camera_matrix(1, 2);
-
-    image_coordinates = (transformed_points * cam).rowwise() + cam_offset.array();
-
-    auto valid_xy_pixels = div_z(Eigen::placeholders::all, 0).array() <= MIN_X_VALUE && 
-                            div_z(Eigen::placeholders::all, 1).array() <= MIN_Y_VALUE &&
-                            valid_z_pixels;
-
-    return valid_xy_pixels;
-  }
-
-*/
-
 }
 
 int main(int argc, char **argv) {
